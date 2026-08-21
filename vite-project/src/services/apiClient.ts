@@ -2,27 +2,10 @@ import axios from "axios";
 import { useAuthStore } from "../stores/authStore";
 import { refreshAccessToken } from "./authService";
 
-// ---- existing mock data loader (as-is) ----
-let cachedData: any = null;
-
-export async function loadMockData() {
-  if (cachedData) return cachedData;
-
-  const res = await fetch("/mock-data.json");
-  if (!res.ok) {
-    throw new Error("could not load mock data");
-  }
-
-  cachedData = await res.json();
-  return cachedData;
-}
-
-// ---- axios instance for authenticated calls ----
 export const apiClient = axios.create({
   baseURL: "https://dummyjson.com",
 });
 
-// attach access token on every outgoing request
 apiClient.interceptors.request.use((config) => {
   const token = useAuthStore.getState().accessToken;
   if (token) {
@@ -31,7 +14,6 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// if a request fails with 401, refresh the token once and retry it
 let isRefreshing = false;
 let pendingQueue: (() => void)[] = [];
 

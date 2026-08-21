@@ -9,6 +9,13 @@ interface LoginResponse {
   image: string;
 }
 
+interface CurrentUserResponse {
+  id: number;
+  username: string;
+  email: string;
+  image: string;
+}
+
 export async function loginRequest(
   username: string,
   password: string,
@@ -20,7 +27,8 @@ export async function loginRequest(
   });
 
   if (!res.ok) {
-    throw new Error("Invalid username or password");
+    const errorBody = await res.json().catch(() => null);
+    throw new Error(errorBody?.message || "Invalid username or password");
   }
 
   return res.json();
@@ -44,4 +52,20 @@ export async function refreshAccessToken(): Promise<string> {
 
   const data = await res.json();
   return data.accessToken;
+}
+
+// gets the real logged-in user's details using the current access token
+// dummyjson returns whichever user actually owns that token, so this is always correct
+export async function getCurrentUser(
+  accessToken: string,
+): Promise<CurrentUserResponse> {
+  const res = await fetch(`${DUMMYJSON_URL}/auth/me`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+
+  if (!res.ok) {
+    throw new Error("Could not fetch current user");
+  }
+
+  return res.json();
 }

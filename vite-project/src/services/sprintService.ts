@@ -1,4 +1,4 @@
-import { loadMockData } from "./apiClient";
+import { loadMockData } from "./mockClient";
 import type { Sprint } from "../types/sprint";
 
 export async function getSprints(): Promise<Sprint[]> {

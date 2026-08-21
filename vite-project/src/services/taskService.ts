@@ -1,4 +1,4 @@
-import { loadMockData } from "./apiClient";
+import { loadMockData } from "./mockClient";
 import type { Task, Comment } from "../types/task";
 
 export async function getTasks(): Promise<Task[]> {

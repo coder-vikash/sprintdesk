@@ -1,9 +1,9 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { pollLatestPosts } from "../services/notificationService";
 import { useNotificationStore } from "../stores/notificationStore";
 
-const POLL_INTERVAL = 15000; // 15 seconds
+const POLL_INTERVAL = 15000;
 
 export function useNotificationsPolling(isPanelOpen: boolean) {
   const addNotification = useNotificationStore((s) => s.addNotification);
@@ -11,17 +11,28 @@ export function useNotificationsPolling(isPanelOpen: boolean) {
   const seenIds = useRef<Set<number>>(new Set());
   const isFirstLoad = useRef(true);
 
+  // explicitly track tab visibility so polling pauses/resumes as required by the spec
+  const [isTabVisible, setIsTabVisible] = useState(!document.hidden);
+
+  useEffect(() => {
+    function handleVisibilityChange() {
+      setIsTabVisible(!document.hidden);
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, []);
+
   const { data } = useQuery({
     queryKey: ["notification-poll"],
     queryFn: pollLatestPosts,
-    refetchInterval: POLL_INTERVAL,
-    // tanstack query already skips refetching while the tab is hidden by default
+    refetchInterval: isTabVisible ? POLL_INTERVAL : false, // false = stop polling when tab hidden
   });
 
   useEffect(() => {
     if (!data) return;
 
-    // first time data loads, just record the ids as "already seen" - don't spam notifications
     if (isFirstLoad.current) {
       data.forEach((post) => seenIds.current.add(post.id));
       isFirstLoad.current = false;
@@ -42,7 +53,6 @@ export function useNotificationsPolling(isPanelOpen: boolean) {
         createdAt: new Date().toISOString(),
       });
 
-      // only toast if the person isn't already looking at the panel
       if (!isPanelOpen) {
         pushToast(`New notification: ${post.title.slice(0, 40)}...`, "info");
       }

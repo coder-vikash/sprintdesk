@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useBoardStore } from "../stores/boardStore";
 import { useSprints } from "../hooks/useSprints";
 import VelocityChart from "../components/analytics/VelocityChart";
@@ -10,6 +11,9 @@ export default function Analytics() {
     const tasks = useBoardStore((s) => s.tasks);
     const { data: sprints, isLoading } = useSprints();
 
+    // tasks reference badalne pe hi recompute ho, har render pe nahi
+    const stableTasks = useMemo(() => tasks, [tasks]);
+
     if (isLoading || !sprints) {
         return <Skeleton className="h-64 w-full" />;
     }
@@ -19,10 +23,10 @@ export default function Analytics() {
             <h1 className="mb-4 text-xl font-semibold text-slate-800 dark:text-white">Analytics</h1>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <VelocityChart tasks={tasks} sprints={sprints} />
-                <StatusChart tasks={tasks} />
-                <PriorityChart tasks={tasks} />
-                <CompletionChart tasks={tasks} />
+                <VelocityChart tasks={stableTasks} sprints={sprints} />
+                <StatusChart tasks={stableTasks} />
+                <PriorityChart tasks={stableTasks} />
+                <CompletionChart tasks={stableTasks} />
             </div>
         </div>
     );

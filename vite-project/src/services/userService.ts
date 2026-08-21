@@ -1,4 +1,4 @@
-import { loadMockData } from "./apiClient";
+import { loadMockData } from "./mockClient";
 import type { User } from "../types/user";
 
 export async function getUsers(): Promise<User[]> {

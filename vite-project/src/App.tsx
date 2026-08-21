@@ -6,6 +6,7 @@ import Toast from "./components/ui/Toast";
 import { useAuthStore } from "./stores/authStore";
 import { useNotificationStore } from "./stores/notificationStore";
 import { getInitialNotifications } from "./services/notificationService";
+import { refreshAccessToken, getCurrentUser } from "./services/authService";
 
 const Login = lazy(() => import("./pages/Login"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -14,14 +15,35 @@ const Analytics = lazy(() => import("./pages/Analytics"));
 
 function App() {
   const setCheckingSession = useAuthStore((s) => s.setCheckingSession);
+  const setAccessToken = useAuthStore((s) => s.setAccessToken);
+  const setUser = useAuthStore((s) => s.setUser);
+  const logout = useAuthStore((s) => s.logout);
   const setNotifications = useNotificationStore((s) => s.setNotifications);
   const notifications = useNotificationStore((s) => s.notifications);
 
   useEffect(() => {
-    setCheckingSession(false);
-  }, [setCheckingSession]);
+    const savedRefreshToken = localStorage.getItem("sprintdesk_refresh_token");
 
-  // seed initial notifications from mock data, only if store is empty (avoid overwriting on every refresh)
+    if (!savedRefreshToken) {
+      setCheckingSession(false);
+      return;
+    }
+
+    refreshAccessToken()
+      .then(async (newAccessToken) => {
+        setAccessToken(newAccessToken);
+        // token milne ke baad turant sahi user details bhi le lo, taaki header me sahi naam dikhe
+        const currentUser = await getCurrentUser(newAccessToken);
+        setUser(currentUser);
+      })
+      .catch(() => {
+        logout();
+      })
+      .finally(() => {
+        setCheckingSession(false);
+      });
+  }, [setCheckingSession, setAccessToken, setUser, logout]);
+
   useEffect(() => {
     if (notifications.length === 0) {
       getInitialNotifications().then(setNotifications);
