@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { useNotificationStore } from "../../stores/notificationStore";
+import { useNotificationsPolling } from "../../hooks/useNotificationsPolling";
 import NotificationPanel from "./NotificationPanel";
 
 export default function NotificationBell() {
     const [open, setOpen] = useState(false);
     const unreadCount = useNotificationStore((s) => s.unreadCount());
+
+    useNotificationsPolling(open);
 
     return (
         <div className="relative">
