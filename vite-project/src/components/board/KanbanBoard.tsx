@@ -20,8 +20,6 @@ export default function KanbanBoard() {
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
     const [addModalOpen, setAddModalOpen] = useState(false);
 
-    // require a small drag distance before dnd-kit treats it as a drag
-    // otherwise a plain click on the card gets swallowed and onClick never fires
     const sensors = useSensors(
         useSensor(PointerSensor, {
             activationConstraint: { distance: 8 },
@@ -50,10 +48,13 @@ export default function KanbanBoard() {
 
     if (isLoading && tasks.length === 0) {
         return (
-            <div className="flex gap-4">
+            <div className="flex gap-4 overflow-x-auto pb-4">
                 {BOARD_COLUMNS.map((col) => (
-                    <div key={col.status} className="w-72 space-y-2">
-                        <Skeleton className="h-6 w-24" />
+                    <div
+                        key={col.status}
+                        className="w-72 flex-shrink-0 space-y-2 rounded-lg bg-slate-100 p-3 dark:bg-slate-900"
+                    >
+                        <Skeleton className="h-5 w-24" />
                         <Skeleton className="h-20 w-full" />
                         <Skeleton className="h-20 w-full" />
                     </div>

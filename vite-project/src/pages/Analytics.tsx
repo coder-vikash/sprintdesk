@@ -16,7 +16,7 @@ export default function Analytics() {
 
     return (
         <div>
-            <h1 className="mb-4 text-xl font-semibold">Analytics</h1>
+            <h1 className="mb-4 text-xl font-semibold text-slate-800 dark:text-white">Analytics</h1>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <VelocityChart tasks={tasks} sprints={sprints} />

@@ -23,11 +23,11 @@ export default function Header({ onMenuClick }: HeaderProps) {
     }
 
     return (
-        <header className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900 sm:px-6">
-            {/* mobile hamburger - only visible on small screens */}
+        <header className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 sm:px-6 dark:border-slate-800 dark:bg-slate-900">
+            {/* mobile hamburger */}
             <button
                 onClick={onMenuClick}
-                className="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white md:hidden"
+                className="rounded-md p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-800 md:hidden dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
                 aria-label="Open menu"
             >
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
@@ -35,10 +35,10 @@ export default function Header({ onMenuClick }: HeaderProps) {
                 </svg>
             </button>
 
+            {/* keeps right-side controls pinned right on desktop where there's no hamburger */}
             <div className="hidden md:block" />
 
-            <div className="flex items-center gap-2 sm:gap-4">
-                {/* theme toggle */}
+            <div className="flex items-center gap-1 sm:gap-3">
                 <button
                     onClick={toggleTheme}
                     aria-label="Toggle theme"
@@ -65,7 +65,6 @@ export default function Header({ onMenuClick }: HeaderProps) {
 
                 <NotificationBell />
 
-                {/* user menu */}
                 <div className="relative">
                     <button
                         onClick={() => setMenuOpen((o) => !o)}
@@ -74,7 +73,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
                         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-xs font-semibold text-white">
                             {user?.username?.[0]?.toUpperCase() ?? "U"}
                         </div>
-                        <span className="hidden text-sm text-slate-600 dark:text-slate-300 sm:inline">
+                        <span className="hidden text-sm text-slate-600 sm:inline dark:text-slate-300">
                             {user?.username}
                         </span>
                     </button>
@@ -86,7 +85,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
                         >
                             <button
                                 onClick={handleLogout}
-                                className="block w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-slate-700"
+                                className="block w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-slate-700"
                             >
                                 Logout
                             </button>

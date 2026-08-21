@@ -22,10 +22,9 @@ export const useThemeStore = create<ThemeState>()(
     }),
     {
       name: "sprintdesk-theme",
-      // when the page reloads and zustand restores the saved theme, apply it to the DOM too
       onRehydrateStorage: () => (state) => {
         if (state) applyThemeToDocument(state.theme);
       },
-    }
-  )
+    },
+  ),
 );

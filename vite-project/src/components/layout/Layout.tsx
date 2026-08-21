@@ -8,17 +8,15 @@ export default function Layout({ children }: { children: ReactNode }) {
 
     return (
         <div className="flex h-screen bg-slate-50 dark:bg-slate-950">
-            {/* desktop sidebar - always visible */}
+            {/* desktop sidebar - always visible from md breakpoint up */}
             <div className="hidden md:block">
                 <Sidebar />
             </div>
 
+            {/* mobile sidebar - overlay drawer */}
             {mobileSidebarOpen && (
                 <div className="fixed inset-0 z-50 md:hidden">
-                    <div
-                        className="absolute inset-0 bg-black/40"
-                        onClick={() => setMobileSidebarOpen(false)}
-                    />
+                    <div className="absolute inset-0 bg-black/40" onClick={() => setMobileSidebarOpen(false)} />
                     <div className="absolute left-0 top-0 h-full">
                         <Sidebar
                             onNavigate={() => setMobileSidebarOpen(false)}
@@ -30,7 +28,9 @@ export default function Layout({ children }: { children: ReactNode }) {
 
             <div className="flex flex-1 flex-col overflow-hidden">
                 <Header onMenuClick={() => setMobileSidebarOpen(true)} />
-                <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
+                <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+                    <div className="mx-auto max-w-7xl">{children}</div>
+                </main>
             </div>
         </div>
     );

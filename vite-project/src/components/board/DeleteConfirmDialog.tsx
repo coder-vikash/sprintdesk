@@ -14,7 +14,7 @@ export default function DeleteConfirmDialog({
 }: DeleteConfirmDialogProps) {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Delete task?">
-      <p className="mb-4 text-sm text-slate-500">
+      <p className="mb-4 text-sm text-slate-500 dark:text-slate-400">
         This will permanently remove the task. This action can't be undone.
       </p>
       <div className="flex justify-end gap-2">
