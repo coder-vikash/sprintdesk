@@ -12,80 +12,92 @@ import Skeleton from "../ui/Skeleton";
 import Button from "../ui/Button";
 
 export default function KanbanBoard() {
-    const { data: fetchedTasks, isLoading } = useTasks();
-    const tasks = useBoardStore((s) => s.tasks);
-    const setTasks = useBoardStore((s) => s.setTasks);
-    const moveTask = useBoardStore((s) => s.moveTask);
+  const { data: fetchedTasks, isLoading } = useTasks();
+  const tasks = useBoardStore((s) => s.tasks);
+  const setTasks = useBoardStore((s) => s.setTasks);
+  const reorderTask = useBoardStore((s) => s.reorderTask);
 
-    const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-    const [addModalOpen, setAddModalOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [addModalOpen, setAddModalOpen] = useState(false);
 
-    const sensors = useSensors(
-        useSensor(PointerSensor, {
-            activationConstraint: { distance: 8 },
-        })
-    );
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    })
+  );
 
-    useEffect(() => {
-        if (fetchedTasks && tasks.length === 0) {
-            setTasks(fetchedTasks);
-        }
-    }, [fetchedTasks, tasks.length, setTasks]);
+  useEffect(() => {
+    if (fetchedTasks && tasks.length === 0) {
+      setTasks(fetchedTasks);
+    }
+  }, [fetchedTasks, tasks.length, setTasks]);
 
-    function handleDragEnd(event: DragEndEvent) {
-        const { active, over } = event;
-        if (!over) return;
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over) return;
 
-        const taskId = Number(active.id);
-        const newStatus = over.id as TaskStatus;
+    const taskId = Number(active.id);
+    const overId = String(over.id);
 
-        const task = tasks.find((t) => t.id === taskId);
-        if (!task || task.status === newStatus) return;
-
-        const tasksInNewColumn = tasks.filter((t) => t.status === newStatus);
-        moveTask(taskId, newStatus, tasksInNewColumn.length + 1);
+    // case 1: dropped on the empty area of a column (id looks like "col-backlog")
+    if (overId.startsWith("col-")) {
+      const newStatus = overId.replace("col-", "") as TaskStatus;
+      const columnTasks = tasks.filter((t) => t.status === newStatus && t.id !== taskId);
+      reorderTask(taskId, newStatus, columnTasks.length); // put it at the end
+      return;
     }
 
-    if (isLoading && tasks.length === 0) {
-        return (
-            <div className="flex gap-4 overflow-x-auto pb-4">
-                {BOARD_COLUMNS.map((col) => (
-                    <div
-                        key={col.status}
-                        className="w-72 flex-shrink-0 space-y-2 rounded-lg bg-slate-100 p-3 dark:bg-slate-900"
-                    >
-                        <Skeleton className="h-5 w-24" />
-                        <Skeleton className="h-20 w-full" />
-                        <Skeleton className="h-20 w-full" />
-                    </div>
-                ))}
-            </div>
-        );
-    }
+    // case 2: dropped on top of another task card
+    const overTask = tasks.find((t) => t.id === Number(over.id));
+    if (!overTask) return;
 
+    const newStatus = overTask.status;
+    const columnTasks = tasks.filter((t) => t.status === newStatus && t.id !== taskId);
+    const newIndex = columnTasks.findIndex((t) => t.id === overTask.id);
+
+    reorderTask(taskId, newStatus, newIndex);
+  }
+
+  if (isLoading && tasks.length === 0) {
     return (
-        <>
-            <div className="mb-4 flex justify-end">
-                <Button onClick={() => setAddModalOpen(true)}>+ Add Task</Button>
-            </div>
-
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                <div className="flex gap-4 overflow-x-auto pb-4">
-                    {BOARD_COLUMNS.map((col) => (
-                        <KanbanColumn
-                            key={col.status}
-                            status={col.status}
-                            title={col.title}
-                            tasks={tasks.filter((t) => t.status === col.status)}
-                            onTaskClick={setSelectedTask}
-                        />
-                    ))}
-                </div>
-            </DndContext>
-
-            {selectedTask && <TaskDrawer task={selectedTask} onClose={() => setSelectedTask(null)} />}
-
-            <AddTaskModal isOpen={addModalOpen} onClose={() => setAddModalOpen(false)} />
-        </>
+      <div className="flex gap-4 overflow-x-auto pb-4">
+        {BOARD_COLUMNS.map((col) => (
+          <div
+            key={col.status}
+            className="w-72 flex-shrink-0 space-y-2 rounded-lg bg-slate-100 p-3 dark:bg-slate-900"
+          >
+            <Skeleton className="h-5 w-24" />
+            <Skeleton className="h-20 w-full" />
+            <Skeleton className="h-20 w-full" />
+          </div>
+        ))}
+      </div>
     );
+  }
+
+  return (
+    <>
+      <div className="mb-4 flex justify-end">
+        <Button onClick={() => setAddModalOpen(true)}>+ Add Task</Button>
+      </div>
+
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <div className="flex gap-4 overflow-x-auto pb-4">
+          {BOARD_COLUMNS.map((col) => (
+            <KanbanColumn
+              key={col.status}
+              status={col.status}
+              title={col.title}
+              tasks={tasks.filter((t) => t.status === col.status)}
+              onTaskClick={setSelectedTask}
+            />
+          ))}
+        </div>
+      </DndContext>
+
+      {selectedTask && <TaskDrawer task={selectedTask} onClose={() => setSelectedTask(null)} />}
+
+      <AddTaskModal isOpen={addModalOpen} onClose={() => setAddModalOpen(false)} />
+    </>
+  );
 }

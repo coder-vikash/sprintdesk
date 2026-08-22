@@ -1,7 +1,7 @@
 import { loadMockData } from "./mockClient";
 import type { AppNotification } from "../types/notification";
 
-const JSONPLACEHOLDER_URL = "https://jsonplaceholder.typicode.com";
+const JSONPLACEHOLDER_URL = import.meta.env.VITE_JSONPLACEHOLDER_BASE_URL;
 
 export async function getInitialNotifications(): Promise<AppNotification[]> {
   const data = await loadMockData();

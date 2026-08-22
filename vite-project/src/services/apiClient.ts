@@ -3,7 +3,7 @@ import { useAuthStore } from "../stores/authStore";
 import { refreshAccessToken } from "./authService";
 
 export const apiClient = axios.create({
-  baseURL: "https://dummyjson.com",
+  baseURL: import.meta.env.VITE_DUMMYJSON_BASE_URL,
 });
 
 apiClient.interceptors.request.use((config) => {

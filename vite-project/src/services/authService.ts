@@ -1,4 +1,4 @@
-const DUMMYJSON_URL = "https://dummyjson.com";
+const DUMMYJSON_URL = import.meta.env.VITE_DUMMYJSON_BASE_URL;
 
 interface LoginResponse {
   accessToken: string;
