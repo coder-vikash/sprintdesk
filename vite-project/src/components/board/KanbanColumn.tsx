@@ -12,7 +12,7 @@ interface KanbanColumnProps {
 }
 
 function KanbanColumn({ status, title, tasks, onTaskClick }: KanbanColumnProps) {
-  // "col-" prefix so this id never clashes with a task id
+  
   const { setNodeRef, isOver } = useDroppable({ id: `col-${status}` });
 
   const taskIds = tasks.map((t) => t.id);
