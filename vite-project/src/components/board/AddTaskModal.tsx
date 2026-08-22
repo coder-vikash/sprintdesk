@@ -6,6 +6,7 @@ import Button from "../ui/Button";
 import { useBoardStore } from "../../stores/boardStore";
 import { useUsers } from "../../hooks/useUsers";
 import type { TaskPriority } from "../../types/task";
+import { useToast } from "../../hooks/useToast";
 
 interface AddTaskModalProps {
     isOpen: boolean;
@@ -16,6 +17,8 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
     const addTask = useBoardStore((s) => s.addTask);
     const tasks = useBoardStore((s) => s.tasks);
     const { data: users } = useUsers();
+
+    const { success } = useToast();
 
     const [title, setTitle] = useState("");
     const [priority, setPriority] = useState<TaskPriority>("medium");
@@ -50,6 +53,7 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
             updatedAt: new Date().toISOString(),
         });
 
+        success("Task created successfully"); // ← YE LINE ADD KARO
         resetForm();
         onClose();
     }
