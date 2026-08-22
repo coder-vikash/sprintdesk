@@ -1,1 +1,1 @@
-Live Url:https://sprintdesk-9sic-flax.vercel.app/login
+Live Url: https://sprintdeskss.netlify.app/login
