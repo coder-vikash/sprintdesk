@@ -32,8 +32,7 @@ export default function KanbanBoard() {
     }
   }, [fetchedTasks, tasks.length, setTasks]);
 
-  // wrapped in useCallback so DndContext doesn't get a brand new function
-  // reference on every render - only changes when tasks or reorderTask change
+
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       const { active, over } = event;

@@ -24,7 +24,7 @@ describe("apiClient auth interceptor", () => {
   });
 
   it("retries the original request after a successful token refresh", async () => {
-    // first call to /some-endpoint fails with 401, second call (the retry) succeeds
+   
     mock
       .onGet("/some-endpoint")
       .replyOnce(401)
