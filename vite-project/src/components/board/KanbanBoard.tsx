@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import type { DragEndEvent } from "@dnd-kit/core";
 import { useBoardStore } from "../../stores/boardStore";
@@ -32,31 +32,36 @@ export default function KanbanBoard() {
     }
   }, [fetchedTasks, tasks.length, setTasks]);
 
-  function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-    if (!over) return;
+  // wrapped in useCallback so DndContext doesn't get a brand new function
+  // reference on every render - only changes when tasks or reorderTask change
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over) return;
 
-    const taskId = Number(active.id);
-    const overId = String(over.id);
+      const taskId = Number(active.id);
+      const overId = String(over.id);
 
-    // case 1: dropped on the empty area of a column (id looks like "col-backlog")
-    if (overId.startsWith("col-")) {
-      const newStatus = overId.replace("col-", "") as TaskStatus;
+      // dropped on the empty area of a column (id looks like "col-backlog")
+      if (overId.startsWith("col-")) {
+        const newStatus = overId.replace("col-", "") as TaskStatus;
+        const columnTasks = tasks.filter((t) => t.status === newStatus && t.id !== taskId);
+        reorderTask(taskId, newStatus, columnTasks.length);
+        return;
+      }
+
+      // dropped on top of another task card
+      const overTask = tasks.find((t) => t.id === Number(over.id));
+      if (!overTask) return;
+
+      const newStatus = overTask.status;
       const columnTasks = tasks.filter((t) => t.status === newStatus && t.id !== taskId);
-      reorderTask(taskId, newStatus, columnTasks.length); // put it at the end
-      return;
-    }
+      const newIndex = columnTasks.findIndex((t) => t.id === overTask.id);
 
-    // case 2: dropped on top of another task card
-    const overTask = tasks.find((t) => t.id === Number(over.id));
-    if (!overTask) return;
-
-    const newStatus = overTask.status;
-    const columnTasks = tasks.filter((t) => t.status === newStatus && t.id !== taskId);
-    const newIndex = columnTasks.findIndex((t) => t.id === overTask.id);
-
-    reorderTask(taskId, newStatus, newIndex);
-  }
+      reorderTask(taskId, newStatus, newIndex);
+    },
+    [tasks, reorderTask]
+  );
 
   if (isLoading && tasks.length === 0) {
     return (

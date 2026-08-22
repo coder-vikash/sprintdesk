@@ -1,47 +1,55 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import MockAdapter from "axios-mock-adapter";
+import { apiClient } from "../services/apiClient";
 import { useAuthStore } from "../stores/authStore";
 
-describe("auth store (interceptor dependency)", () => {
+// mock the refresh call so we control exactly what it returns
+vi.mock("../services/authService", () => ({
+  refreshAccessToken: vi.fn(),
+}));
+
+import { refreshAccessToken } from "../services/authService";
+
+describe("apiClient auth interceptor", () => {
+  let mock: MockAdapter;
+
   beforeEach(() => {
+    mock = new MockAdapter(apiClient);
     useAuthStore.setState({
       user: null,
-      accessToken: null,
-      isAuthenticated: false,
+      accessToken: "old-token",
+      isAuthenticated: true,
     });
-    localStorage.clear();
+    vi.clearAllMocks();
   });
 
-  it("sets session and stores refresh token", () => {
-    useAuthStore
-      .getState()
-      .setSession(
-        { id: 1, username: "test", email: "a@a.com", image: "" },
-        "access123",
-        "refresh123",
-      );
+  it("retries the original request after a successful token refresh", async () => {
+    // first call to /some-endpoint fails with 401, second call (the retry) succeeds
+    mock
+      .onGet("/some-endpoint")
+      .replyOnce(401)
+      .onGet("/some-endpoint")
+      .reply(200, { data: "success" });
 
-    expect(useAuthStore.getState().isAuthenticated).toBe(true);
-    expect(useAuthStore.getState().accessToken).toBe("access123");
-    expect(localStorage.getItem("sprintdesk_refresh_token")).toBe("refresh123");
+    (refreshAccessToken as ReturnType<typeof vi.fn>).mockResolvedValue("new-token");
+
+    const response = await apiClient.get("/some-endpoint");
+
+    expect(refreshAccessToken).toHaveBeenCalledTimes(1);
+    expect(response.data).toEqual({ data: "success" });
+    expect(useAuthStore.getState().accessToken).toBe("new-token");
   });
 
-  it("updates access token after refresh", () => {
-    useAuthStore.getState().setAccessToken("newToken456");
-    expect(useAuthStore.getState().accessToken).toBe("newToken456");
-  });
+  it("logs the user out if refresh also fails", async () => {
+    mock.onGet("/some-endpoint").reply(401);
 
-  it("clears session on logout", () => {
-    useAuthStore
-      .getState()
-      .setSession(
-        { id: 1, username: "test", email: "a@a.com", image: "" },
-        "access123",
-        "refresh123",
-      );
+    (refreshAccessToken as ReturnType<typeof vi.fn>).mockRejectedValue(
+      new Error("refresh token expired")
+    );
 
-    useAuthStore.getState().logout();
+    await expect(apiClient.get("/some-endpoint")).rejects.toThrow();
 
     expect(useAuthStore.getState().isAuthenticated).toBe(false);
-    expect(localStorage.getItem("sprintdesk_refresh_token")).toBeNull();
+    expect(useAuthStore.getState().accessToken).toBeNull();
   });
 });
